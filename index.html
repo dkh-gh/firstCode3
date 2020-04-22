@@ -1,0 +1,1107 @@
+
+<!DOCTYPE html>
+
+<html>
+	
+	<meta charset="utf-8">
+	
+	<title>Первый Код 3.0</title>
+	
+	<style>
+		
+		@font-face {
+			
+			font-family: Impact;
+			src: url("data/impact.ttf");
+			
+		}
+		
+		@font-face {
+			
+			font-family: PTMono;
+			src: url("data/PTM55FT.ttf");
+			
+		}
+		
+		* {
+			
+			position: fixed;
+			
+			margin: 0;
+			padding: 0;
+			
+			border: 0;
+			
+			float: left;
+			
+			font-family: Impact;
+			
+		}
+		
+		.programCodeClass {
+			
+			background-color: #fff5d5; /*#dedeff;*/
+			
+			left: 0;
+			top: 70px;
+			
+			font-size: 20px;
+			font-family: PTMono;
+			
+			width: 355px;
+			height: 260px;
+			
+			margin: 0;
+			padding:  20px 10px;
+			
+			resize: none;
+			
+		}
+		
+		.buttonClass {
+			
+			position: relative;
+			
+			width: 75px;
+			height: 70px;
+			
+			background-color: #ffc300;
+			background-image: url(data/buttons.svg);
+			background-size: auto 100%;
+			
+		}
+		.buttonClass:hover {
+			background-color: #ffd44a;
+		}
+			.buttonRunClass {}
+			.buttonClearDrawClass { background-position: 375px 0; }
+			.buttonClearCodeClass { background-position: 300px 0; }
+			.buttonSaveClass { background-position: 75px 0; }
+			.buttonInfoClass { background-position: 225px 0; }
+		
+		.drawFieldClass {
+			
+			top: 0;
+			left: 375px;
+			
+			background-color: #fffdf8;
+			
+		}
+		
+		.uiWindowClass {
+			
+			width: 70%;
+			height: 60%;
+			
+			background-color: #ffe6a9;
+			
+			left: 15%;
+			top: 20%;
+			
+			cursor: default;
+			
+			overflow: auto;
+			
+		}
+			.uiWindowHeaderClass {
+			
+				width: inherit;
+				height: 75px;
+				
+				background-color: #ffd13c;
+				
+				z-index: 100000;
+				
+			}
+				.uiWindowHeaderTextClass {
+					
+					font-size: 40px;
+					
+					padding: 14px 90px;
+					
+					color: #fff;
+					
+				}
+				.uiWindowHeaderCloseButtonClass {
+					
+			    font-size: 60px;
+					
+					float: right;
+					
+					padding: 0 15px;
+					
+					color: red;
+				}
+			.uiWindowTextClass {
+				
+				position: relative;
+				
+				width: 95%;
+				
+				padding: 90px 0 35px 0;
+				
+			}
+		
+		.loadSlot {
+			
+			margin: 10px 0 10px 30px;
+			padding: 10px;
+			
+			background-color: #fff2ca;
+			
+			position: relative;
+			
+			width: 80%;
+			
+			font-size: 25px;
+			color: #808080;
+			
+			cursor: pointer;
+			
+			float: left;
+			
+		}
+		.deleteSlot {
+		
+			margin: 10px 0;
+			padding: 10px;
+			
+			background-color: #ffb5b5;
+			
+			position: relative;
+			
+			font-size: 25px;
+			color: #808080;
+			
+			cursor: pointer;
+			
+			float: left;
+			
+		}
+		
+		.flashMessageStyle {
+			
+			width: 100%;
+			height: 70px;
+			
+			left: 375px;
+			
+			background-color: #deaa00;
+			color: #fff;
+			
+			cursor: default;
+			
+		}
+			.flashMessageCloseButtonStyle {
+				
+				padding: 20px;
+				
+				font-size: 25px;
+				
+				background-color: #de8500;
+				color: #b70000;
+				
+				cursor: pointer;
+				
+			}
+			.flashMessageTextStyle {
+				
+				padding: 20px 0 20px 80px;
+				
+				font-size: 25px;
+				
+			}
+		
+	</style>
+	
+	<body>
+		
+		<textarea spellcheck="false" id="programCode" class="programCodeClass"></textarea>
+		
+		<div class="buttonsPanelClass">
+			<input type="button" id="buttonRun" class="buttonClass buttonRunClass">
+			<input type="button" id="buttonClearDraw" class="buttonClass buttonClearDrawClass">
+			<input type="button" id="buttonClearCode" class="buttonClass buttonClearCodeClass">
+			<input type="button" id="buttonSave" class="buttonClass buttonSaveClass">
+			<input type="button" id="buttonInfo" class="buttonClass buttonInfoClass">
+		</div>
+		
+		<svg id="drawField" class="drawFieldClass"></svg>
+		
+		<div id="uiWindow" class="uiWindowClass">
+			<div id="uiWindowHeader" class="uiWindowHeaderClass">
+				<div id="uiWindowHeaderText" class="uiWindowHeaderTextClass">Стандартное окошко</div>
+				<div id="uiWindowHeaderCloseButton" class="uiWindowHeaderCloseButtonClass" onclick="Window('close')">[x]</div>
+			</div>
+			<div id="uiWindowText" class="uiWindowTextClass"></div>
+		</div>
+		
+		<div id="flashMessage" class="flashMessageStyle">
+			<div id="flashMessageText" class="flashMessageTextStyle">Какое-то оповещение.</div>
+			<div id="flashMessageClodeButton" class="flashMessageCloseButtonStyle" onclick="flashMessageAction('close')">[x]</div>
+		</div>
+		
+	</body>
+	
+	<script>
+		
+		fullCommands = [];
+		commands = [];
+		params = [];
+		vars = [];
+		functions = [];
+		mathData = [];
+		repeats = [];
+		includesPrepare = [];
+		
+		drawStrokeWidth = 3;
+		drawStrokeColor = "#ce7b00";
+		
+		drawStep = 10;
+		
+		window.addEventListener('load', function() {
+			
+			//programCode.style.fontFamily = "monoscape";
+			
+			programCode = document.getElementById('programCode');
+			drawField = document.getElementById('drawField');
+			buttonRun = document.getElementById('buttonRun');
+			buttonClearDraw = document.getElementById('buttonClearDraw');
+			buttonClearCode = document.getElementById('buttonClearCode');
+			buttonInfo = document.getElementById('buttonInfo');
+			
+			uiWindow = document.getElementById('uiWindow');
+			uiWindowHeaderText = document.getElementById('uiWindowHeaderText');
+			uiWindowText = document.getElementById('uiWindowText');
+			
+			flashMessage = document.getElementById('flashMessage');
+			flashMessageText = document.getElementById('flashMessageText');
+			
+			resizeElements();
+			window.addEventListener('resize', resizeElements, false);
+			
+			document.addEventListener('keypress', function(e) {
+				//console.log(e.keyCode);
+				if(e.keyCode == 10) prepareProgram();
+				programCode.focus();
+			}, false);
+			
+			buttonRun.addEventListener('click', function() { menuClick(0) });
+			buttonClearDraw.addEventListener('click', function() { menuClick(1) });
+			buttonClearCode.addEventListener('click', function() { menuClick(2) });
+			buttonInfo.addEventListener('click', function() { menuClick(3) });
+			buttonSave.addEventListener('click', function() { menuClick(4) });
+			
+			Window("close");
+			flashMessageAction("close");
+			reloadSaves();
+			
+		}, false);
+		
+		function resizeElements() {
+			winH = document.documentElement.clientHeight;
+			winW = document.documentElement.clientWidth;
+			programCode.style.height = winH - 110 + "px";
+			drawField.style.height = winH + "px";
+			drawField.style.width = winW - 375 + "px";
+			
+			x = (winW-375)/2;
+			y = winH/2;
+			
+			clearDraw();
+			
+		}
+		
+		function menuClick(c) {
+			//alert(c);
+			if(c == 0) prepareProgram();
+			if(c == 1) clearDraw();
+			if(c == 2) if(programCode.value != "") if(confirm("Стереть весь код?")) programCode.value = "";
+			if(c == 3) alert("ПервыйКод 3.0\nhttp://холостов.рф");
+			if(c == 4) {
+				Window("show");
+			}
+		}
+		
+		function Window(a, p) {
+			switch(a) {
+				case "close":
+					uiWindow.style.display = "none";
+					break;
+				case "show":
+					uiWindow.style.display = "";
+					break;
+				case "clear":
+					uiWindowHeaderText.innerHTML = "";
+					uiWindowText.innerHTML = "";
+					break;
+				case "setHeader":
+					uiWindowHeaderText.innerHTML = p;
+					break;
+				case "addElement":
+					uiWindowText.innerHTML += p;
+					break;
+				default:
+			}
+		}
+		
+		function reloadSaves() {
+			
+			Window("clear");
+			Window("setHeader", "Сохранить / Загрузить");
+			
+			Window("addElement", "<div class=\"loadSlot\" style=\"color: #fff; background-color: #887741;\" onclick=\"saveSaves()\">[ СОХРАНИТЬ ]</div><br>");
+			
+			if(localStorage.length > 0) {
+				for(i = 0; i < localStorage.length; i++) {
+					Window("addElement", "<div class=\"loadSlot\" onclick=\"loadSaves('"+localStorage.key(i)+"')\">"+localStorage.key(i)+"</div><div class=\"deleteSlot\" onclick=\"deleteSaves('"+localStorage.key(i)+"')\">[x]</div><br>");
+				}
+			}
+			
+		}
+		
+		function loadSaves(k) {
+			programCode.value = localStorage.getItem(k);
+			Window("close");
+			//programCode.style.fontFamily = "monoscape";
+		}
+		
+		function saveSaves() {
+			name = prompt("Сохранить под именем: ", "Программа");
+			localStorage.setItem(name, programCode.value);
+			reloadSaves();
+		}
+		
+		function deleteSaves(k) {
+			if(confirm("Удалить программу \""+k+"\"?")) localStorage.removeItem(k);
+			reloadSaves();
+		}
+		
+		function flashMessageAction(msg) {
+			if(msg == "close") {
+				flashMessage.style.display = "none";
+			}
+			else {
+				try {clearTimeout(msgAct); } catch {}
+				flashMessageText.innerHTML = msg;
+				flashMessage.style.display = "";
+				msgAct = window.setTimeout(function() { flashMessageAction("close") }, 60000);
+			}
+		}
+		
+		function clearDraw() {
+			drawField.innerHTML = "";
+			
+			x = (winW-375)/2;
+			y = winH/2;
+			
+			redrawBrush();
+		}
+		
+		function redrawBrush() {
+			if (typeof(document.getElementById('drawBrush')) != 'undefined' && document.getElementById('drawBrush') != null) document.getElementById('drawBrush').remove();
+			drawField.innerHTML += '<circle id="drawBrush" cx="'+x+'" cy="'+y+'" r="25" fill="#0000000c"/>';
+		}
+		
+		function prepareProgram() {
+			
+			buttonRun.style.backgroundPositionX = "150px";
+			timer = new Date();
+			
+			fullCommands.length = 0;
+			commands.length = 0;
+			params.length = 0;
+			vars.length = 0;
+			functions.length = 0;
+			mathData.length = 0;
+			repeats.length = 0;
+			includesPrepare.length = 0;
+			
+			fullCommands = programCode.value.split('\n');
+			for(i = 0; i < fullCommands.length; i++) {
+				if(fullCommands[i].length == 0) { fullCommands.splice(i, 1); i-- }
+			}
+			
+			for(i = 0; i < fullCommands.length; i++) {
+				commands[i] = fullCommands[i].split(' ');
+				if(commands[i].length < 1) { commands.splice(i, 1); i-- }
+				for(ii = 0; ii < commands[i].length; ii++) {
+					if(commands[i][ii] == "") { commands[i].splice(ii, 1); ii-- }
+				}
+			}
+			
+			for(i = 0; i < commands.length; i++) {
+				//console.log("Найден пробел: "+i);
+				if(commands[i].length == 0) {
+					commands.splice(i, 1);
+					i--;
+				}
+			}
+			
+			//console.log("commands");
+			//console.log(commands);
+			
+			for(i = 0; i < commands.length; i++) {
+				if(commands[i][0] == "повторить") includesPrepare[includesPrepare.length] = [1, i];
+				if(commands[i][0] == "если") includesPrepare[includesPrepare.length] = [2, i];
+				if(commands[i][0] == "функция") includesPrepare[includesPrepare.length] = [3, i];
+				if(commands[i][0] == ")") includesPrepare[includesPrepare.length] = [0, i];
+			}
+			if(includesPrepare.length > 0) {
+				for(i = 0; i < includesPrepare.length; i++) {
+					c = 0;
+					cPos = i;
+					if(includesPrepare[i][0] == 1) {
+						for(ii = cPos; ii < includesPrepare.length; ii++) {
+							if((includesPrepare[ii][0] == 1) || (includesPrepare[ii][0] == 2) || (includesPrepare[ii][0] == 3)) c++;
+							if(includesPrepare[ii][0] == 0) c--;
+							if(c == 0) {
+								includesPrepare[i][2] = ii;
+								includesPrepare[ii][2] = i;
+								break;
+							}
+						}
+					}
+					if(includesPrepare[i][0] == 2) {
+						for(ii = cPos; ii < includesPrepare.length; ii++) {
+							if((includesPrepare[ii][0] == 1) || (includesPrepare[ii][0] == 2) || (includesPrepare[ii][0] == 3)) c++;
+							if(includesPrepare[ii][0] == 0) c--;
+							if(c == 0) {
+								includesPrepare[i][2] = ii;
+								includesPrepare[ii][2] = i;
+								break;
+							}
+						}
+					}
+					if(includesPrepare[i][0] == 3) {
+						for(ii = cPos; ii < includesPrepare.length; ii++) {
+							if((includesPrepare[ii][0] == 1) || (includesPrepare[ii][0] == 2) || (includesPrepare[ii][0] == 3)) c++;
+							if(includesPrepare[ii][0] == 0) c--;
+							if(c == 0) {
+								includesPrepare[i][2] = ii;
+								includesPrepare[ii][2] = i;
+								break;
+							}
+						}
+					}
+				}
+				//console.log("includesPrepare");
+				//console.log(includesPrepare);
+			}
+			
+			if(commands.length > 0) window.setTimeout( function() { runProgram() }, 10 );
+			else buttonRun.style.backgroundPositionX = "";
+			
+		}
+		
+		function testVars(v) {
+			//console.log("vars");
+			//console.log(vars);
+			tmp = false;
+			for(i = 0; i < vars.length; i++) if(v == vars[i][0]) {
+				tmp = true;
+				params[100] = i;
+				params[101] = vars[i][1];
+			}
+			return tmp;
+		}
+		
+		function math(n0, n1, act, fvar, svar) {
+			
+			if( fvar ) n0 = parseFloat(vars[n0][1]);
+			else n0 = parseFloat(n0);
+			if( svar ) n1 = parseFloat(vars[n1][1]);
+			else n1 = parseFloat(n1);
+			
+			if(act == 0) result = n0 + n1;
+			if(act == 1) result = n0 - n1;
+			if(act == 2) result = n0 * n1;
+			if(act == 3) result = n0 / n1;
+			
+			return result;
+			
+		}
+		
+		function addFunc(f) {
+			
+			//console.log(stepCounter+": создание функции "+f);
+			
+			result = false;
+			
+			if(vars.length > 0) {
+				for(i = 0; i < vars.length; i++) if(vars[i][0] == f) error = true;
+			}
+			if(!error) {
+				if(functions.length > 0) {
+					for(i = 0; i < functions.length; i++) {
+						if(functions[i][0] == f) error = true;
+					}
+				}
+			}
+			if(!error) {
+				for(i = 0; i < includesPrepare.length; i++) {
+					if(includesPrepare[i][1] == stepCounter) {
+						functions[functions.length] = [f, stepCounter, includesPrepare[includesPrepare[i][2]][1], false, 0];
+						stepCounter = includesPrepare[includesPrepare[i][2]][1];
+						result = true;
+						break;
+					}
+				}
+			}
+			
+			return result;
+			
+		}
+		
+		function testFunc(f) {
+			result = -1;
+			if(/^[а-яА-Я]/.test(f)) {
+				for(i = 0; i < functions.length; i++) {
+					if(f == functions[i][0]) result = i;
+				}
+			}
+			return result;
+		}
+		
+		function logic(v0, l, v1) {
+			
+			if(/^[а-яА-Я]/.test(v0)) {
+				if(testVars(v0)) {
+					v0 = params[101];
+				}
+			}
+			//else if(v0%1 == 0) v0 = parseInt(v0);
+			if(/^[а-яА-Я]/.test(v1)) {
+				if(testVars(v1)) {
+					v1 = params[101];
+				}
+			}
+			//else if(v1%1 == 0) v1 = parseInt(v0);
+			
+			//console.log("logic");
+			//console.log(v0+" "+l+" "+v1);
+			
+			result = false;
+			
+			switch(l) {
+				case "=":
+					if(v0 == v1) result = true;
+					break;
+				case "<":
+					if((/^[а-яА-Я]/.test(v0)) || (/^[а-яА-Я]/.test(v1))) error = true;
+					else { if(parseFloat(v0) < parseFloat(v1)) result = true; }
+					break;
+				case ">":
+					if((/^[а-яА-Я]/.test(v0)) || (/^[а-яА-Я]/.test(v1))) error = true;
+					else { if(parseFloat(v0) > parseFloat(v1)) result = true; }
+					break;
+				case "<>":
+					if((/^[а-яА-Я]/.test(v0)) || (/^[а-яА-Я]/.test(v1))) error = true;
+					else { if(parseFloat(v0) != parseFloat(v1)) result = true; }
+					break;
+				
+				
+			}
+			
+			//console.log(result);
+			return result;
+			
+		}
+		
+		function runProgram() {
+			
+			stepCounter = 0;
+			error = false;
+			
+			//x = (winW-300)/2;
+			//y = winH/2;
+			
+			buttonRun.style.backgroundPositionX = "150px";
+			
+			while(stepCounter < commands.length) {
+				
+				params.length = 0;
+				mathData.length = 0;
+				
+				switch(commands[stepCounter][0]) {
+					
+					case "/":
+					case "//":
+					case "#":
+					case ".":
+					case "*":
+						break;
+					
+					case "ввод":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) error = true
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+									vars[params[100]][1] = prompt(vars[params[100]][0] + " =", 0);
+								}
+								else error = true;
+							}
+							else error = true;
+						}
+						break;
+					
+					case "вывод":
+						//params[0] = commands[stepCounter][1];
+						for(i = 1; i < commands[stepCounter].length; i++) params[i-1] = commands[stepCounter][i];
+						if(params[0] == undefined) error = true;
+						else {
+							//alert("параметры(1): "+params);
+							for(si = 0; si < params.length; si++) {
+								if( /^[а-яА-Я]/.test(params[si])) {
+									if(testVars(params[si])) {
+										params[si] = params[101];
+									}
+									params.splice(100, 100);
+								}
+							}
+							for(i = 0; i < params.length; i++) {
+								if(params[i] == undefined) {
+									params.splice(i);
+									break;
+								}
+							}
+						}
+						//alert("параметры(2): "+params);
+						params.splice(100, 100);
+						alert(params.join(' '));
+						break;
+					
+					case "очистить":
+						clearDraw();
+						break;
+					
+					case "переменная":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) error = true;
+						if( /^[а-яА-Я]/.test(params[0])) vars[vars.length] = [params[0], 0];
+						else error = true;
+						break;
+					
+					case "сдвиг-вправо":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						x += params[0]*drawStep;
+						break;
+						
+					case "сдвиг-влево":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						x -= params[0]*drawStep;
+						break;
+					
+					case "сдвиг-вверх":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						y -= params[0]*drawStep;
+						break;
+					
+					case "сдвиг-вниз":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						y += params[0]*drawStep;
+						break;
+					
+					case "вправо":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+(x+(params[0]*drawStep))+'" y2="'+y+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						x += params[0]*drawStep;
+						break;
+					
+					case "влево":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+(x-(params[0]*drawStep))+'" y2="'+y+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						x -= params[0]*drawStep;
+						break;
+					
+					case "вверх":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+(y-(params[0]*drawStep))+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						y -= params[0]*drawStep;
+						break;
+					
+					case "вниз":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+(y+(params[0]*drawStep))+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						y += params[0]*drawStep;
+						break;
+					
+					case "вверх-влево":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+(x-(params[0]*drawStep))+'" y2="'+(y-(params[0]*drawStep))+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						x -= params[0]*drawStep;
+						y -= params[0]*drawStep;
+						break;
+					
+					case "вверх-вправо":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+(x+(params[0]*drawStep))+'" y2="'+(y-(params[0]*drawStep))+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						x += params[0]*drawStep;
+						y -= params[0]*drawStep;
+						break;
+					
+					case "вниз-влево":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+(x-(params[0]*drawStep))+'" y2="'+(y+(params[0]*drawStep))+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						x -= params[0]*drawStep;
+						y += params[0]*drawStep;
+						break;
+					
+					case "вниз-вправо":
+						params[0] = commands[stepCounter][1];
+						if(params[0] == undefined) params[0] = 1;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+						}
+						drawField.innerHTML += '<line x1="'+x+'" y1="'+y+'" x2="'+(x+(params[0]*drawStep))+'" y2="'+(y+(params[0]*drawStep))+'" stroke="'+drawStrokeColor+'" stroke-width="'+drawStrokeWidth+'"/>';
+						x += params[0]*drawStep;
+						y += params[0]*drawStep;
+						break;
+					
+					case "повторить":
+						params[0] = commands[stepCounter][1];
+						params[1] = commands[stepCounter][2];
+						if(params[0] == undefined) error = true;
+						else {
+							if( /^[а-яА-Я]/.test(params[0])) {
+								if(testVars(params[0])) {
+									params[0] = params[101];
+								}
+								else error = true;
+							}
+							else parseInt(params[0]);
+							for(i = 0; i < includesPrepare.length; i++) {
+								if(stepCounter == includesPrepare[i][1]) goTo = includesPrepare[i][2];
+							}
+							repeats[repeats.length] = [stepCounter+1, 1, parseInt(params[0])-1];
+							//console.log("repeats");
+							//console.log("("+repeats.length+") "+repeats[0][0]+":"+repeats[0][1]+":"+repeats[0][2]+":");
+							
+							
+							if(params[1] != "(") error = true;
+						}
+						break;
+					
+					case "если":
+						if(commands[stepCounter].length == 5) {
+							if(logic(commands[stepCounter][1], commands[stepCounter][2], commands[stepCounter][3])) {
+								// true
+							}
+							else {
+								for(i = 0; i < includesPrepare.length; i++) {
+									if(includesPrepare[i][1] == stepCounter) stepCounter = includesPrepare[includesPrepare[i][2]][1]+1;
+								}
+							}
+						}
+						else error = true;
+						break;
+					
+					case "функция":
+						if((commands[stepCounter].length == 3) && (commands[stepCounter][2] == "(")) {
+							if(addFunc(commands[stepCounter][1])) {}
+							else error = true;
+						}
+						else error = true;
+						break;
+					
+					case ")":
+						for(i = 0; i < includesPrepare.length; i++) {
+							if(includesPrepare[i][1] == stepCounter) {
+								bracketType = includesPrepare[includesPrepare[i][2]][0];
+							}
+						}
+						if(bracketType == 1) {
+							if(repeats.length < 1) error = true;
+							else {
+								repeats[repeats.length-1][2]--;
+								if(repeats[repeats.length-1][2] < 0) {
+									repeats.splice([repeats.length-1], 1);
+								}
+								else {
+									stepCounter = repeats[repeats.length-1][0]-1;
+								}
+							}
+						}
+						if(bracketType == 3) {
+							//console.log(stepCounter+":Закрытие ф-ции");
+							for(i = 0; i < includesPrepare.length; i++) {
+								if(includesPrepare[i][1] == stepCounter) {
+									//console.log(stepCounter+":Найдено совпадение");
+									for(ii = 0; ii < functions.length; ii++) {
+										//console.log(stepCounter+":сравнение: "+ functions[ii][2] +" и "+ includesPrepare[i][1]);
+										if(functions[ii][2] == includesPrepare[i][1]) {
+											//console.log(stepCounter+":Ф-ция найдена: "+functions[ii][2]+"("+functions[ii][0]+")");
+											if(functions[ii][3]) {
+												//console.log(stepCounter+":Выход из функции: "+functions[ii][4]);
+												stepCounter = functions[ii][4];
+												functions[ii][3] = false;
+											}
+											break;
+										}
+									}
+									
+								}
+							}
+						}
+						break;
+					
+					default:
+						if(testVars(commands[stepCounter][0])) {
+							params[2] = commands[stepCounter][1];
+							params[3] = commands[stepCounter][2];
+							params[4] = commands[stepCounter][3];
+							params[5] = commands[stepCounter][4];
+							switch(params[2]) {
+								case "=":
+									if(params[3] != undefined) {
+										params[102] = params[100];
+										if( /^[а-яА-Я]/.test(params[3])) {
+											if(testVars(params[3])) {
+												mathData[3] = true;
+												vars[params[102]][1] = vars[params[100]][1];
+												mathData[0] = params[102];
+												if(params[4] != undefined) {
+													mathData[0] = params[102];
+													switch(params[4]) {
+														case "+":
+															mathData[2] = 0;
+															break;
+														case "-":
+															mathData[2] = 1;
+															break;
+														case "*":
+															mathData[2] = 2;
+															break;
+														case "/":
+															mathData[2] = 3;
+															break;
+														default:
+															error = true;
+													}
+													if(params[5] != undefined) {
+														if( /^[а-яА-Я]/.test(params[5])) {
+															if(testVars(params[5])) {
+																mathData[4] = true;
+																mathData[1] = params[100];
+															}
+															else error = true;
+														}
+														else {
+															mathData[4] = false;
+															mathData[1] = params[5];
+														}
+														vars[params[102]][1] = math(mathData[0], mathData[1], mathData[2], mathData[3], mathData[4]);
+													}
+													else error = true;
+												}
+												
+											}
+											else error = true;
+										}
+										else {
+											mathData[3] = true;
+											vars[params[102]][1] = params[3];
+											mathData[0] = params[102];
+											if(params[4] != undefined) {
+												mathData[0] = params[102];
+												switch(params[4]) {
+													case "+":
+														mathData[2] = 0;
+														break;
+													case "-":
+														mathData[2] = 1;
+														break;
+													case "*":
+														mathData[2] = 2;
+														break;
+													case "/":
+														mathData[2] = 3;
+														break;
+													default:
+														error = true;
+												}
+												if(params[5] != undefined) {
+													if( /^[а-яА-Я]/.test(params[5])) {
+														if(testVars(params[5])) {
+															mathData[4] = true;
+															mathData[1] = params[100];
+														}
+														else error = true;
+													}
+													else {
+														mathData[4] = false;
+														mathData[1] = params[5];
+													}
+													vars[params[102]][1] = math(mathData[0], mathData[1], mathData[2], mathData[3], mathData[4]);
+												}
+												else error = true;
+											}
+										}
+									}
+									else error = true;
+									break;
+								default:
+									error = true;
+							}
+						}
+						else {
+							//console.log(testFunc(commands[stepCounter][0]));
+							if(testFunc(commands[stepCounter][0]) >= 0) {
+								f = testFunc(commands[stepCounter][0]);
+								//console.log(stepCounter+":Запуск функции: "+functions[f][0]);
+								functions[f][3] = true;
+								functions[f][4] = stepCounter;
+								stepCounter = functions[f][1];
+							}
+							else error = true;;
+						}
+						
+				}
+				
+				stepCounter++;
+				
+				if(error) break;
+				
+				redrawBrush();
+				
+			}
+			
+			//console.log("functions");
+			//console.log(functions);
+			
+			buttonRun.style.backgroundPositionX = "";
+			
+			if(error) flashMessageAction("Ошибка в строке " + stepCounter + ".");
+			else {
+				timer1 = new Date();
+				timer = timer1.getTime() - timer.getTime();
+				timerHalf = timer%1000+"";
+				while(timerHalf.length < 3) timerHalf = "0"+timerHalf;
+				timer = Math.floor(timer/1000)+"."+timerHalf;
+				
+				flashMessageAction("Программа выполнена за "+timer+" сек.");
+			}
+			
+		}
+		
+	</script>
+	
+</html>
